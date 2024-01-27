@@ -1,9 +1,8 @@
-CraftserveRadiation ![Build](https://github.com/Craftserve/CraftserveRadiation/workflows/Build/badge.svg) ![Deploy](https://github.com/Craftserve/CraftserveRadiation/workflows/Deploy/badge.svg)
+CraftserveRadiation (Fork for SMP X)
 ===================
 
 Plugin do [Spigota](https://spigotmc.org/) dodający strefę radiacji, taką jak na [Kwadratowej Masakrze](https://kwadratowa.tv) (październik 2019).
-Plugin działa na [Minecraft Java Edition](https://minecraft.net) na wersji 1.14, 1.15, 1.16, 1.17, 1.18 oraz 1.19. Wymaga zainstalowanego pluginu [WorldGuard](https://enginehub.org/worldguard/).
-bStats: https://bstats.org/plugin/bukkit/CraftserveRadiation/13487
+Plugin działa na [Minecraft Java Edition](https://minecraft.net) na wersji 1.14, 1.15, 1.16, 1.17, 1.18, 1.19 oraz 1.20. Wymaga zainstalowanego pluginu [WorldGuard](https://enginehub.org/worldguard/).
 
 Autorem pluginu jest [TheMolkaPL](https://github.com/TheMolkaPL).
 
@@ -15,7 +14,7 @@ Przy pierwszym uruchomieniu pluginu potrzebujesz ustalić region który oznaczy 
 Pobieranie
 ---
 
-Najnowsze stabilne kompilacje znajdują sie w https://github.com/Craftserve/CraftserveRadiation/releases
+Najnowsze stabilne kompilacje znajdują sie w https://github.com/Xslash58/CraftserveRadiation/releases
 
 Kompilacja
 ---
