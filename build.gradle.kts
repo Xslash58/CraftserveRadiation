@@ -4,7 +4,7 @@
 
 plugins {
     `java-library`
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("com.gradleup.shadow") version "8.3.5"
 }
 
 repositories {
@@ -38,7 +38,7 @@ val apiVersion = "1.14"
 dependencies {
     api(libs.org.bstats.bstats.bukkit)
     api(libs.org.bstats.bstats.base)
-    compileOnly(libs.org.bukkit.bukkit)
+    compileOnly(libs.paper.api)
     compileOnly(libs.com.sk89q.worldedit.worldedit.core)
     compileOnly(libs.com.sk89q.worldedit.worldedit.bukkit)
     compileOnly(libs.com.sk89q.worldguard.worldguard.core)
@@ -47,15 +47,18 @@ dependencies {
 
 group = "pl.craftserve"
 version = "1.6.2"
-java.sourceCompatibility = JavaVersion.VERSION_1_8
+
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+}
 
 // TODO: add publish
 
-tasks.withType<JavaCompile>() {
+tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
 }
 
-tasks.withType<Javadoc>() {
+tasks.withType<Javadoc> {
     options.encoding = "UTF-8"
 }
 
@@ -68,14 +71,16 @@ tasks {
 
     processResources {
         filesMatching("plugin.yml") {
-            expand(mapOf(
-                "projectName" to project.name,
-                "projectVersion" to version,
-                "authors" to authors,
-                "projectUrl" to projectUrl,
-                "apiVersion" to apiVersion
+            expand(
+                mapOf(
+                    "projectName" to project.name,
+                    "projectVersion" to version,
+                    "authors" to authors,
+                    "projectUrl" to projectUrl,
+                    "apiVersion" to apiVersion
 
-            ))
+                )
+            )
         }
     }
 }

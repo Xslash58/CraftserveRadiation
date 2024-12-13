@@ -8,7 +8,7 @@ com-sk89q-worldguard-worldguard-bukkit = "7.0.3-SNAPSHOT"
 com-sk89q-worldguard-worldguard-core = "7.0.3-SNAPSHOT"
 org-bstats-bstats-base = "3.0.2"
 org-bstats-bstats-bukkit = "3.0.2"
-org-bukkit-bukkit = "1.14.4-R0.1-SNAPSHOT"
+paper-api-version = "1.20.4-R0.1-SNAPSHOT"
 
 [libraries]
 com-sk89q-worldedit-worldedit-bukkit = { module = "com.sk89q.worldedit:worldedit-bukkit", version.ref = "com-sk89q-worldedit-worldedit-bukkit" }
@@ -17,4 +17,4 @@ com-sk89q-worldguard-worldguard-bukkit = { module = "com.sk89q.worldguard:worldg
 com-sk89q-worldguard-worldguard-core = { module = "com.sk89q.worldguard:worldguard-core", version.ref = "com-sk89q-worldguard-worldguard-core" }
 org-bstats-bstats-base = { module = "org.bstats:bstats-base", version.ref = "org-bstats-bstats-base" }
 org-bstats-bstats-bukkit = { module = "org.bstats:bstats-bukkit", version.ref = "org-bstats-bstats-bukkit" }
-org-bukkit-bukkit = { module = "org.bukkit:bukkit", version.ref = "org-bukkit-bukkit" }
+paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper-api-version" }
