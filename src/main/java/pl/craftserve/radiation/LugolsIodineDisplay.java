@@ -16,11 +16,9 @@
 
 package pl.craftserve.radiation;
 
-import org.bukkit.ChatColor;
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarFlag;
-import org.bukkit.boss.BarStyle;
-import org.bukkit.boss.BossBar;
+import com.google.common.collect.Lists;
+import net.kyori.adventure.bossbar.BossBar;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -31,13 +29,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -45,12 +37,14 @@ public class LugolsIodineDisplay implements Listener {
     static final Logger logger = Logger.getLogger(LugolsIodineDisplay.class.getName());
 
     private static final String DEFAULT_BAR_ID = "default";
-    /** Fallback config when a silly user removes the default one. */
+    /**
+     * Fallback config when a silly user removes the default one.
+     */
     private static final BarConfig DEFAULT_BAR_CONFIG = new BarConfig(
             "Lugol's Iodine Effect",
-            BarColor.GREEN,
-            BarStyle.SEGMENTED_20,
-            new BarFlag[0]);
+            BossBar.Color.GREEN,
+            BossBar.Overlay.NOTCHED_20,
+            new HashSet<>());
 
     private final Map<UUID, Display> displayMap = new HashMap<>(128);
     private final Plugin plugin;
@@ -104,8 +98,8 @@ public class LugolsIodineDisplay implements Listener {
                 return this.createBossBar(effect);
             });
 
-            bossBar.setProgress((double) effect.getTimeLeft().toMillis() / effect.getInitialDuration().toMillis());
-            bossBar.addPlayer(player);
+            bossBar.progress((float) effect.getTimeLeft().toMillis() / effect.getInitialDuration().toMillis());
+            bossBar.addViewer(player);
             return bossBar;
         }
 
@@ -115,12 +109,12 @@ public class LugolsIodineDisplay implements Listener {
 
             BossBar bossBar = this.bossBarMap.remove(effectId);
             if (bossBar != null) {
-                bossBar.removePlayer(player);
+                bossBar.removeViewer(player);
             }
         }
 
         void removeAll() {
-            this.bossBarMap.values().forEach(BossBar::removeAll);
+            this.bossBarMap.values().forEach(bossBar -> Lists.newArrayList(bossBar.viewers()).clear());
             this.bossBarMap.clear();
         }
 
@@ -128,7 +122,8 @@ public class LugolsIodineDisplay implements Listener {
             Objects.requireNonNull(player, "player");
             Objects.requireNonNull(effectList, "effectList");
 
-            existingLoop: for (Map.Entry<String, BossBar> entry : new LinkedHashSet<>(this.bossBarMap.entrySet())) {
+            existingLoop:
+            for (Map.Entry<String, BossBar> entry : new LinkedHashSet<>(this.bossBarMap.entrySet())) {
                 String effectId = entry.getKey();
 
                 for (LugolsIodineEffect.Effect next : effectList) {
@@ -158,7 +153,7 @@ public class LugolsIodineDisplay implements Listener {
                 }
             }
 
-            return barConfig.create(plugin.getServer(), ChatColor.GREEN);
+            return barConfig.create(plugin.getServer(), NamedTextColor.GREEN);
         }
     }
 

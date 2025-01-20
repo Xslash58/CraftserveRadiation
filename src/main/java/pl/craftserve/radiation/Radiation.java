@@ -17,6 +17,7 @@
 package pl.craftserve.radiation;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldguard.LocalPlayer;
@@ -26,10 +27,11 @@ import com.sk89q.worldguard.internal.platform.WorldGuardPlatform;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.flags.Flag;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
+import net.kyori.adventure.bossbar.BossBar;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.World;
-import org.bukkit.boss.BossBar;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.MemoryConfiguration;
@@ -48,15 +50,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import pl.craftserve.radiation.nms.RadiationNmsBridge;
 
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
@@ -80,7 +74,7 @@ public class Radiation implements Listener {
 
     public void enable() {
         Server server = this.plugin.getServer();
-        this.bossBar = this.config.bar().create(server, ChatColor.DARK_RED);
+        this.bossBar = this.config.bar().create(server, NamedTextColor.DARK_RED);
 
         this.task = new Task();
         this.task.runTaskTimer(this.plugin, 20L, 20L);
@@ -96,7 +90,7 @@ public class Radiation implements Listener {
         }
 
         if (this.bossBar != null) {
-            this.bossBar.removeAll();
+            Lists.newArrayList(this.bossBar.viewers()).clear();
         }
 
         this.affectedPlayers.clear();
@@ -110,7 +104,7 @@ public class Radiation implements Listener {
 
     private void addBossBar(Player player) {
         Objects.requireNonNull(player, "player");
-        this.bossBar.addPlayer(player);
+        this.bossBar.addViewer(player);
     }
 
     private void broadcastEscape(Player player) {
@@ -154,7 +148,7 @@ public class Radiation implements Listener {
 
     public void removeBossBar(Player player) {
         Objects.requireNonNull(player, "player");
-        this.bossBar.removePlayer(player);
+        this.bossBar.removeViewer(player);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -175,9 +169,7 @@ public class Radiation implements Listener {
 
                     boolean showBossBar = event.shouldShowWarning();
                     boolean cancel = event.isCancelled();
-
-                    boolean contains = bossBar.getPlayers().contains(player);
-
+                    boolean contains = Lists.newArrayList(bossBar.viewers()).contains(player);
                     if (!cancel) {
                         for (PotionEffect effect : effects) {
                             player.addPotionEffect(effect, true);

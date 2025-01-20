@@ -16,31 +16,30 @@
 
 package pl.craftserve.radiation;
 
-import org.bukkit.ChatColor;
+import net.kyori.adventure.bossbar.BossBar;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Server;
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarFlag;
-import org.bukkit.boss.BarStyle;
-import org.bukkit.boss.BossBar;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.MemoryConfiguration;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 public class BarConfig {
     private final String title;
-    private final BarColor color;
-    private final BarStyle style;
-    private final BarFlag[] flags;
+    private final BossBar.Color color;
+    private final BossBar.Overlay overlay;
+    private final Set<BossBar.Flag> flags;
 
-    public BarConfig(String title, BarColor color, BarStyle style, BarFlag[] flags) {
-        this.title = Objects.requireNonNull(title, "title");
-        this.color = Objects.requireNonNull(color, "color");
-        this.style = Objects.requireNonNull(style, "style");
-        this.flags = Objects.requireNonNull(flags, "flags");
+    public BarConfig(@NotNull String title, @NotNull BossBar.Color color, @NotNull BossBar.Overlay overlay, @NotNull Set<BossBar.Flag> flags) {
+        this.title = title;
+        this.color = color;
+        this.overlay = overlay;
+        this.flags = flags;
     }
 
     public BarConfig(ConfigurationSection section) throws InvalidConfigurationException {
@@ -50,59 +49,53 @@ public class BarConfig {
 
         this.title = Objects.requireNonNull(RadiationPlugin.colorize(section.getString("title", "")));
 
-        String color = section.getString("color", BarColor.WHITE.name());
-        if (color == null) {
-            throw new InvalidConfigurationException("Missing bar color.");
-        }
+        String color = section.getString("color", BossBar.Color.WHITE.name());
 
         try {
-            this.color = Objects.requireNonNull(BarColor.valueOf(color.toUpperCase()));
+            this.color = Objects.requireNonNull(BossBar.Color.valueOf(color.toUpperCase()));
         } catch (IllegalArgumentException e) {
             throw new InvalidConfigurationException("Unknown bar color: " + color);
         }
 
-        String style = section.getString("style", BarStyle.SOLID.name());
-        if (style == null) {
-            throw new InvalidConfigurationException("Missing bar style.");
-        }
+        String overlay = section.getString("style", BossBar.Overlay.PROGRESS.name());
 
         try {
-            this.style = Objects.requireNonNull(BarStyle.valueOf(style.toUpperCase()));
+            this.overlay = Objects.requireNonNull(BossBar.Overlay.valueOf(overlay.toUpperCase()));
         } catch (IllegalArgumentException e) {
-            throw new InvalidConfigurationException("Unknown bar style: " + style);
+            throw new InvalidConfigurationException("Unknown bar style: " + overlay);
         }
 
-        List<BarFlag> flags = new ArrayList<>();
+        Set<BossBar.Flag> flags = new HashSet<>();
         for (String flagName : section.getStringList("flags")) {
             try {
-                flags.add(BarFlag.valueOf(flagName.toUpperCase()));
+                flags.add(BossBar.Flag.valueOf(flagName.toUpperCase()));
             } catch (IllegalArgumentException e) {
                 throw new InvalidConfigurationException("Unknown bar flag: " + flagName);
             }
         }
-        this.flags = Objects.requireNonNull(flags.toArray(new BarFlag[0]));
+        this.flags = flags;
     }
 
     public String title() {
         return this.title;
     }
 
-    public BarColor color() {
+    public BossBar.Color color() {
         return this.color;
     }
 
-    public BarStyle style() {
-        return this.style;
+    public BossBar.Overlay overlay() {
+        return this.overlay;
     }
 
-    public BarFlag[] flags() {
+    public Set<BossBar.Flag> flags() {
         return this.flags;
     }
 
-    public BossBar create(Server server, ChatColor color) {
+    public BossBar create(Server server, NamedTextColor color) {
         Objects.requireNonNull(server, "server");
         Objects.requireNonNull(color, "color");
 
-        return server.createBossBar(color + this.title(), this.color(), this.style(), this.flags());
+        return BossBar.bossBar(Component.text(this.title(), color), BossBar.MAX_PROGRESS, this.color(), this.overlay(), this.flags);
     }
 }
