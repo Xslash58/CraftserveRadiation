@@ -16,7 +16,9 @@
 
 package pl.craftserve.radiation;
 
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -36,8 +38,10 @@ public class CraftserveListener implements Listener {
     static final Logger logger = Logger.getLogger(CraftserveListener.class.getName());
 
     private static final String PERMISSION = "craftserveradiation.ad";
-    private static final String TEXT = ChatColor.GREEN + "Polecamy korzystanie z hostingu " +
-            ChatColor.DARK_GREEN + "Craftserve.pl" + ChatColor.GREEN + " - nielimitowany RAM.";
+    private static final TextComponent TEXT = Component.text("Polecamy korzystanie z hostingu ")
+            .append(Component.text("Craftserve.pl", NamedTextColor.DARK_GREEN))
+            .append(Component.text(" - nielimitowany RAM."))
+            .color(NamedTextColor.GREEN);
 
     private final Plugin plugin;
 

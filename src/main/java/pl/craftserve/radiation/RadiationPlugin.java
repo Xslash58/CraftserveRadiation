@@ -27,6 +27,11 @@ import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.GlobalProtectedRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.World;
@@ -38,23 +43,9 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
-import pl.craftserve.radiation.nms.RadiationNmsBridge;
-import pl.craftserve.radiation.nms.V1_14ToV1_15NmsBridge;
-import pl.craftserve.radiation.nms.V1_17_R1NmsBridge;
-import pl.craftserve.radiation.nms.V1_18_R1NmsBridge;
-import pl.craftserve.radiation.nms.V1_18_R2NmsBridge;
-import pl.craftserve.radiation.nms.V1_19_R1NmsBridge;
-import pl.craftserve.radiation.nms.V1_19_R2NmsBridge;
+import pl.craftserve.radiation.nms.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -63,10 +54,12 @@ import java.util.logging.Logger;
 public final class RadiationPlugin extends JavaPlugin {
     static final Logger logger = Logger.getLogger(RadiationPlugin.class.getName());
 
-    private static final char COLOR_CODE = '&';
+    public static TextComponent colorizeComponent(String input) {
+        return input == null ? null : LegacyComponentSerializer.legacyAmpersand().deserialize(input);
+    }
 
-    public static String colorize(String input) {
-        return input == null ? null : ChatColor.translateAlternateColorCodes(COLOR_CODE, input);
+    public static String  componentToPlainText(Component input) {
+        return PlainTextComponentSerializer.plainText().serialize(input);
     }
 
     private static final int CURRENT_PROTOCOL_VERSION = 4;

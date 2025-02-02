@@ -18,7 +18,6 @@ package pl.craftserve.radiation;
 
 import com.google.common.collect.Lists;
 import net.kyori.adventure.bossbar.BossBar;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -94,9 +93,7 @@ public class LugolsIodineDisplay implements Listener {
             Objects.requireNonNull(player, "player");
             Objects.requireNonNull(effect, "effect");
 
-            BossBar bossBar = this.bossBarMap.computeIfAbsent(effect.getId(), effectId -> {
-                return this.createBossBar(effect);
-            });
+            BossBar bossBar = this.bossBarMap.computeIfAbsent(effect.getId(), effectId -> this.createBossBar(effect));
 
             bossBar.progress((float) effect.getTimeLeft().toMillis() / effect.getInitialDuration().toMillis());
             bossBar.addViewer(player);
@@ -153,7 +150,7 @@ public class LugolsIodineDisplay implements Listener {
                 }
             }
 
-            return barConfig.create(plugin.getServer(), NamedTextColor.GREEN);
+            return barConfig.create();
         }
     }
 

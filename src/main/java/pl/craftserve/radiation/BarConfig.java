@@ -18,8 +18,7 @@ package pl.craftserve.radiation;
 
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.Server;
+import net.kyori.adventure.text.TextComponent;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.MemoryConfiguration;
@@ -30,13 +29,13 @@ import java.util.Objects;
 import java.util.Set;
 
 public class BarConfig {
-    private final String title;
+    private final TextComponent title;
     private final BossBar.Color color;
     private final BossBar.Overlay overlay;
     private final Set<BossBar.Flag> flags;
 
     public BarConfig(@NotNull String title, @NotNull BossBar.Color color, @NotNull BossBar.Overlay overlay, @NotNull Set<BossBar.Flag> flags) {
-        this.title = title;
+        this.title = Component.text(title);
         this.color = color;
         this.overlay = overlay;
         this.flags = flags;
@@ -47,7 +46,7 @@ public class BarConfig {
             section = new MemoryConfiguration();
         }
 
-        this.title = Objects.requireNonNull(RadiationPlugin.colorize(section.getString("title", "")));
+        this.title = Objects.requireNonNull(RadiationPlugin.colorizeComponent(section.getString("title", "")));
 
         String color = section.getString("color", BossBar.Color.WHITE.name());
 
@@ -76,7 +75,7 @@ public class BarConfig {
         this.flags = flags;
     }
 
-    public String title() {
+    public TextComponent title() {
         return this.title;
     }
 
@@ -92,10 +91,8 @@ public class BarConfig {
         return this.flags;
     }
 
-    public BossBar create(Server server, NamedTextColor color) {
-        Objects.requireNonNull(server, "server");
-        Objects.requireNonNull(color, "color");
+    public BossBar create() {
 
-        return BossBar.bossBar(Component.text(this.title(), color), BossBar.MAX_PROGRESS, this.color(), this.overlay(), this.flags);
+        return BossBar.bossBar(this.title(), BossBar.MAX_PROGRESS, this.color(), this.overlay(), this.flags);
     }
 }

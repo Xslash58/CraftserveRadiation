@@ -28,8 +28,8 @@ import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.flags.Flag;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import net.kyori.adventure.bossbar.BossBar;
-import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.ChatColor;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
@@ -47,6 +47,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.NotNull;
 import pl.craftserve.radiation.nms.RadiationNmsBridge;
 
 import java.text.MessageFormat;
@@ -74,7 +75,7 @@ public class Radiation implements Listener {
 
     public void enable() {
         Server server = this.plugin.getServer();
-        this.bossBar = this.config.bar().create(server, NamedTextColor.DARK_RED);
+        this.bossBar = this.config.bar().create();
 
         this.task = new Task();
         this.task.runTaskTimer(this.plugin, 20L, 20L);
@@ -107,17 +108,17 @@ public class Radiation implements Listener {
         this.bossBar.addViewer(player);
     }
 
-    private void broadcastEscape(Player player) {
-        Objects.requireNonNull(player, "player");
+    private void broadcastEscape(@NotNull Player player) {
 
         String id = this.getId();
         logger.info(player.getName() + " has entered \"" + id + "\" radiation zone at " + player.getLocation());
 
         this.config.enterMessage().ifPresent(rawMessage -> {
-            String message = ChatColor.RED + MessageFormat.format(rawMessage, player.getDisplayName() + ChatColor.RESET, id);
+            String playerDisplayName = RadiationPlugin.componentToPlainText(player.displayName());
+            String message = MessageFormat.format(rawMessage, playerDisplayName, id);
             for (Player online : this.plugin.getServer().getOnlinePlayers()) {
                 if (online.canSee(player)) {
-                    online.sendMessage(message);
+                    online.sendMessage(RadiationPlugin.colorizeComponent(message));
                 }
             }
         });
@@ -172,7 +173,7 @@ public class Radiation implements Listener {
                     boolean contains = Lists.newArrayList(bossBar.viewers()).contains(player);
                     if (!cancel) {
                         for (PotionEffect effect : effects) {
-                            player.addPotionEffect(effect, true);
+                            player.addPotionEffect(effect);
                         }
 
                         addAffectedPlayer(player, showBossBar);
@@ -314,12 +315,12 @@ public class Radiation implements Listener {
                         continue;
                     }
 
-                    PotionEffectType type = PotionEffectType.getByName(effectSection.getName());
+                    PotionEffectType type = Registry.EFFECT.get(NamespacedKey.minecraft(effectSection.getName()));
                     if (type == null) {
                         throw new InvalidConfigurationException("Unknown effect type: " + key + ".");
                     }
 
-                    effectSection.set("effect", type.getId());
+                    effectSection.set("effect", type.key().value());
                     effectSection.set("duration", 20 * 5); // duration, in ticks
                     effectSection.set("amplifier", effectSection.getInt("level", 1) - 1);
 
@@ -333,7 +334,7 @@ public class Radiation implements Listener {
 
             this.effects = Collections.unmodifiableCollection(effects);
 
-            String enterMessage = RadiationPlugin.colorize(section.getString("enter-message"));
+            String enterMessage = section.getString("enter-message");
             this.enterMessage = enterMessage != null && !enterMessage.isEmpty() ? enterMessage : null;
         }
 
