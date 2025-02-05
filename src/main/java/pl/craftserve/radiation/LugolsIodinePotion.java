@@ -19,6 +19,7 @@ package pl.craftserve.radiation;
 import com.google.common.io.Closer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -30,12 +31,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.BrewEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.BrewerInventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
@@ -88,7 +87,11 @@ public class LugolsIodinePotion implements Listener, Predicate<ItemStack> {
         Config.Recipe recipeConfig = this.config.recipe();
         if (recipeConfig.enabled()) {
             this.recipeKey = NamespacedKey.randomKey();
-            nmsBridge.registerLugolsIodinePotion(this.recipeKey, recipeConfig);
+            try {
+                nmsBridge.registerLugolsIodinePotion(this.recipeKey, recipeConfig, createItemStack(1));
+            } catch (IOException e) {
+                throw new RuntimeException("Cannot register potion", e);
+            }
         }
         this.plugin.getServer().getPluginManager().registerEvents(this, this.plugin);
     }
@@ -190,57 +193,6 @@ public class LugolsIodinePotion implements Listener, Predicate<ItemStack> {
         });
     }
 
-    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-    public void onBrew(BrewEvent event) {
-        Config.Recipe recipeConfig = this.config.recipe();
-        if (!recipeConfig.enabled()) {
-            return;
-        }
-
-        BrewerInventory inventory = event.getContents();
-        BrewingStandWindow window = BrewingStandWindow.fromArray(inventory.getContents());
-
-        if (!window.ingredient.getType().equals(recipeConfig.ingredient())) {
-            return;
-        }
-
-        boolean[] modified = new boolean[BrewingStandWindow.SLOTS];
-
-        for (int i = 0; i < BrewingStandWindow.SLOTS; i++) {
-            ItemStack result = window.results[i];
-            if (result == null) {
-                continue; // nothing in this slot
-            }
-
-            ItemMeta itemMeta = result.getItemMeta();
-            if (!(itemMeta instanceof PotionMeta potionMeta)) {
-                continue;
-            }
-
-            if (potionMeta.getBasePotionType().equals(recipeConfig.basePotion())) {
-                try {
-                    result.setItemMeta(this.convert(potionMeta));
-                } catch (IOException e) {
-                    logger.log(Level.SEVERE, "Could not transform potion to lugol's iodine.", e);
-                    continue;
-                }
-
-                modified[i] = true;
-            }
-        }
-
-        // delay this, because nms changes item stacks after BrewEvent is called
-        this.plugin.getServer().getScheduler().runTask(this.plugin, () -> {
-            for (int i = 0; i < BrewingStandWindow.SLOTS; i++) {
-                if (modified[i]) {
-                    ItemStack[] contents = inventory.getContents();
-                    contents[i] = window.getResult(i);
-                    inventory.setContents(contents);
-                }
-            }
-        });
-    }
-
     public ItemStack createItemStack(int amount) throws IOException {
         ItemStack itemStack = new ItemStack(Material.POTION, amount);
         PotionMeta potionMeta = (PotionMeta) Objects.requireNonNull(itemStack.getItemMeta());
@@ -260,8 +212,8 @@ public class LugolsIodinePotion implements Listener, Predicate<ItemStack> {
 
         this.config.color().ifPresent(potionMeta::setColor);
         potionMeta.addItemFlags(ItemFlag.HIDE_ITEM_SPECIFICS);
-        potionMeta.displayName(Component.text(this.config.name(), NamedTextColor.AQUA));
-        potionMeta.lore(Collections.singletonList(Component.text(MessageFormat.format(this.config.description(), formattedDuration), NamedTextColor.BLUE)));
+        potionMeta.displayName(Component.text(this.config.name(), NamedTextColor.AQUA).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        potionMeta.lore(Collections.singletonList(Component.text(MessageFormat.format(this.config.description(), formattedDuration), NamedTextColor.BLUE).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)));
 
         PersistentDataContainer container = potionMeta.getPersistentDataContainer();
         container.set(this.potionIdKey, PersistentDataType.STRING, this.config.id());

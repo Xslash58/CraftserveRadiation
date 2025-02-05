@@ -31,7 +31,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.World;
@@ -43,7 +42,8 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
-import pl.craftserve.radiation.nms.*;
+import pl.craftserve.radiation.nms.PaperApi;
+import pl.craftserve.radiation.nms.RadiationNmsBridge;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -58,7 +58,7 @@ public final class RadiationPlugin extends JavaPlugin {
         return input == null ? null : LegacyComponentSerializer.legacyAmpersand().deserialize(input);
     }
 
-    public static String  componentToPlainText(Component input) {
+    public static String componentToPlainText(Component input) {
         return PlainTextComponentSerializer.plainText().serialize(input);
     }
 
@@ -80,32 +80,6 @@ public final class RadiationPlugin extends JavaPlugin {
     private CraftserveListener craftserveListener;
     private MetricsHandler metricsHandler;
 
-    private RadiationNmsBridge initializeNmsBridge() {
-        String serverVersion = RadiationNmsBridge.getServerVersion(this.getServer());
-        logger.info("Detected server version: " + serverVersion);
-
-        switch (serverVersion) {
-            case "v1_14_R1":
-            case "v1_15_R1":
-            case "v1_16_R1":
-            case "v1_16_R2":
-            case "v1_16_R3":
-                return new V1_14ToV1_15NmsBridge(serverVersion);
-            case "v1_17_R1":
-                return new V1_17_R1NmsBridge(serverVersion);
-            case "v1_18_R1":
-                return new V1_18_R1NmsBridge(serverVersion);
-            case "v1_18_R2":
-                return new V1_18_R2NmsBridge(serverVersion);
-            case "v1_19_R1":
-                return new V1_19_R1NmsBridge(serverVersion);
-            case "v1_19_R2":
-                return new V1_19_R2NmsBridge(serverVersion);
-            default:
-                throw new RuntimeException("Unsupported server version: " + serverVersion);
-        }
-    }
-
     @Override
     public void onLoad() {
         FlagRegistry flagRegistry = WorldGuard.getInstance().getFlagRegistry();
@@ -122,13 +96,7 @@ public final class RadiationPlugin extends JavaPlugin {
         Server server = this.getServer();
         this.saveDefaultConfig();
 
-        try {
-            this.radiationNmsBridge = this.initializeNmsBridge();
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Failed to launch " + this.getName() + ". Plausibly your server version is unsupported.", e);
-            this.setEnabled(false);
-            return;
-        }
+        this.radiationNmsBridge = new PaperApi();
 
         //
         // Configuration
@@ -300,7 +268,7 @@ public final class RadiationPlugin extends JavaPlugin {
                 if (logged.compareAndSet(false, true)) {
                     logger.warning(
                             "Enabling in legacy region-name mode! The plugin will try to automatically migrate to the new flag-based system.\n" +
-                            "If everything went fine please completely remove your config.yml file.");
+                                    "If everything went fine please completely remove your config.yml file.");
                 }
 
                 this.migrateFromRegionId(worldName, legacyRegionId);
@@ -371,7 +339,7 @@ public final class RadiationPlugin extends JavaPlugin {
      * Migrate from region-ID based method to the new flag method.
      *
      * @param worldName Name of the world.
-     * @param regionId ID of the region.
+     * @param regionId  ID of the region.
      */
     private void migrateFromRegionId(String worldName, String regionId) {
         Objects.requireNonNull(worldName, "worldName");

@@ -315,7 +315,7 @@ public class Radiation implements Listener {
                         continue;
                     }
 
-                    PotionEffectType type = Registry.EFFECT.get(NamespacedKey.minecraft(effectSection.getName()));
+                    PotionEffectType type = Registry.POTION_EFFECT_TYPE.get(NamespacedKey.minecraft(effectSection.getName()));
                     if (type == null) {
                         throw new InvalidConfigurationException("Unknown effect type: " + key + ".");
                     }

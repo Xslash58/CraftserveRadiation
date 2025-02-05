@@ -33,7 +33,7 @@ repositories {
 
 val authors = arrayOf("TheMolkaPL <themolkapl@gmail.com>")
 val projectUrl = "https://github.com/Craftserve/CraftserveRadiation"
-val apiVersion = "1.14"
+val apiVersion = "1.20"
 
 dependencies {
     api(libs.org.bstats.bstats.bukkit)
