@@ -27,16 +27,15 @@ import java.util.Objects;
 public interface RadiationNmsBridge {
     void registerLugolsIodinePotion(NamespacedKey potionKey, LugolsIodinePotion.Config.Recipe config);
 
-    void unregisterLugolsIodinePotion(NamespacedKey potionKey);
 
     int getMinWorldHeight(World bukkitWorld);
 
     static String getServerVersion(Server server) {
         Objects.requireNonNull(server, "server");
 
-        Package serverClassPackage = server.getClass().getPackage();
-        String[] packages = StringUtils.split(serverClassPackage.getName(), ".");
+        String serverVersion = server.getBukkitVersion();
+        String[] versionParts = StringUtils.split(serverVersion, "-");
 
-        return packages[packages.length - 1];
+        return versionParts[0];
     }
 }

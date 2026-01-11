@@ -39,7 +39,6 @@ import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionType;
 import pl.craftserve.radiation.nms.RadiationNmsBridge;
 
@@ -101,15 +100,6 @@ public class LugolsIodinePotion implements Listener, Predicate<ItemStack> {
             nmsBridge.registerLugolsIodinePotion(this.recipeKey, recipeConfig);
         }
         this.plugin.getServer().getPluginManager().registerEvents(this, this.plugin);
-    }
-
-    public void disable(RadiationNmsBridge nmsBridge) {
-        Objects.requireNonNull(nmsBridge, "nmsBridge");
-
-        HandlerList.unregisterAll(this);
-        if (this.config.recipe().enabled()) {
-            nmsBridge.unregisterLugolsIodinePotion(this.recipeKey);
-        }
     }
 
     public Duration getDuration() {
@@ -229,7 +219,7 @@ public class LugolsIodinePotion implements Listener, Predicate<ItemStack> {
             }
 
             PotionMeta potionMeta = (PotionMeta) itemMeta;
-            if (potionMeta.getBasePotionData().getType().equals(recipeConfig.basePotion())) {
+            if (potionMeta.getBasePotionType() == recipeConfig.basePotion()) {
                 try {
                     result.setItemMeta(this.convert(potionMeta));
                 } catch (IOException e) {
@@ -256,9 +246,7 @@ public class LugolsIodinePotion implements Listener, Predicate<ItemStack> {
     public ItemStack createItemStack(int amount) throws IOException {
         ItemStack itemStack = new ItemStack(Material.POTION, amount);
         PotionMeta potionMeta = (PotionMeta) Objects.requireNonNull(itemStack.getItemMeta());
-
-        PotionData potionData = new PotionData(this.config.recipe().basePotion());
-        potionMeta.setBasePotionData(potionData);
+        potionMeta.setBasePotionType(this.config.recipe().basePotion());
 
         itemStack.setItemMeta(this.convert(potionMeta));
         return itemStack;
@@ -271,7 +259,7 @@ public class LugolsIodinePotion implements Listener, Predicate<ItemStack> {
         String formattedDuration = formatDuration(duration);
 
         this.config.color().ifPresent(potionMeta::setColor);
-        potionMeta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
+        potionMeta.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
         potionMeta.setDisplayName(ChatColor.AQUA + this.config.name());
         potionMeta.setLore(Collections.singletonList(ChatColor.BLUE + MessageFormat.format(this.config.description(), formattedDuration)));
 

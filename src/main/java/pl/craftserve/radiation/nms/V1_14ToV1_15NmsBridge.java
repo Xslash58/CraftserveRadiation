@@ -109,10 +109,6 @@ public class V1_14ToV1_15NmsBridge implements RadiationNmsBridge {
         }
     }
 
-    @Override
-    public void unregisterLugolsIodinePotion(NamespacedKey potionKey) {
-        // todo unregister potion and brewing recipe
-    }
 
     @Override
     public int getMinWorldHeight(World bukkitWorld) {

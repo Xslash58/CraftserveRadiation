@@ -37,14 +37,7 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
-import pl.craftserve.radiation.nms.RadiationNmsBridge;
-import pl.craftserve.radiation.nms.V1_14ToV1_15NmsBridge;
-import pl.craftserve.radiation.nms.V1_17_R1NmsBridge;
-import pl.craftserve.radiation.nms.V1_18_R1NmsBridge;
-import pl.craftserve.radiation.nms.V1_18_R2NmsBridge;
-import pl.craftserve.radiation.nms.V1_19_R1NmsBridge;
-import pl.craftserve.radiation.nms.V1_19_R2NmsBridge;
-import pl.craftserve.radiation.nms.V1_20_R3NmsBridge;
+import pl.craftserve.radiation.nms.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -85,31 +78,28 @@ public final class RadiationPlugin extends JavaPlugin {
     private final Map<String, Radiation> activeRadiations = new LinkedHashMap<>();
 
     private RadiationNmsBridge initializeNmsBridge() {
-        String serverVersion = RadiationNmsBridge.getServerVersion(this.getServer());
+        String serverVersion = RadiationNmsBridge.getServerVersion(getServer());
         logger.info("Detected server version: " + serverVersion);
 
         switch (serverVersion) {
-            case "v1_14_R1":
-            case "v1_15_R1":
-            case "v1_16_R1":
-            case "v1_16_R2":
-            case "v1_16_R3":
+            case "1.14":
+            case "1.15":
+            case "1.16":
+            case "1.16.2":
+            case "1.16.3":
                 return new V1_14ToV1_15NmsBridge(serverVersion);
-            case "v1_17_R1":
+            case "1.17":
                 return new V1_17_R1NmsBridge(serverVersion);
-            case "v1_18_R1":
+            case "1.18":
                 return new V1_18_R1NmsBridge(serverVersion);
-            case "v1_18_R2":
+            case "1.18.2":
                 return new V1_18_R2NmsBridge(serverVersion);
-            case "v1_19_R1":
+            case "1.19":
                 return new V1_19_R1NmsBridge(serverVersion);
-            case "v1_19_R2":
-            case "v1_19_R3":
+            case "1.19.2":
                 return new V1_19_R2NmsBridge(serverVersion);
-            case "v1_20_R1":
-            case "v1_20_R2":
-            case "v1_20_R3":
-                return new V1_20_R3NmsBridge(serverVersion);
+            case "1.21.5":
+                return new V1_21_R4NmsBridge(serverVersion);
             default:
                 throw new RuntimeException("Unsupported server version: " + serverVersion);
         }
@@ -203,7 +193,6 @@ public final class RadiationPlugin extends JavaPlugin {
         this.activeRadiations.forEach((id, radiation) -> radiation.disable());
         this.activeRadiations.clear();
 
-        this.potions.forEach((id, potion) -> potion.disable(this.radiationNmsBridge));
         this.potions.clear();
 
         if (this.display != null) {
