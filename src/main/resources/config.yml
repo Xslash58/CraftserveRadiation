@@ -28,10 +28,10 @@ lugols-iodine-bars:
     # blue, green, pink, purple, red, white, yellow
     color: green
     # Style of the bar, possible values:
-    # segmented_6, segmented_10, segmented_12, segmented_20, solid
-    style: segmented_20
+    # notched_6, notched_10, notched_12, notched_20, progress
+    style: notched_20
     # Additional effects given for the player, possible values:
-    # create_fog, darken_sky, play_boss_music
+    # create_world_fog, darken_screen, play_boss_music
     flags: []
 
 # Lugol's iodine potion item options. You can define as many potions as you
@@ -88,11 +88,11 @@ radiations:
       # blue, green, pink, purple, red, white, yellow
       color: red
       # Style of the bar, possible values:
-      # segmented_6, segmented_10, segmented_12, segmented_20, solid
-      style: solid
+      # notched_6, notched_10, notched_12, notched_20, progress
+      style: progress
       # Additional effects given for the player, possible values:
-      # create_fog, darken_sky, play_boss_music
-      flags: [darken_sky]
+      # create_world_fog, darken_screen, play_boss_music
+      flags: [darken_screen]
     # Effects given in the radiation zone.
     effects:
       # Name of the effect. List of effect names is available here:

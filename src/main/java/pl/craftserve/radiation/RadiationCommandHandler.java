@@ -28,23 +28,18 @@ import com.sk89q.worldguard.protection.regions.GlobalProtectedRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
-import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.PluginCommand;
-import org.bukkit.command.TabCompleter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
 import pl.craftserve.radiation.nms.RadiationNmsBridge;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.Spliterator;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -76,12 +71,11 @@ public class RadiationCommandHandler implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "Only players may execute this command.");
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(Component.text("Only players may execute this command.", NamedTextColor.RED));
             return true;
         }
-        Player player = (Player) sender;
 
         if (args.length > 0) {
             switch (args[0]) {
@@ -92,29 +86,29 @@ public class RadiationCommandHandler implements CommandExecutor, TabCompleter {
             }
         }
 
-        sender.sendMessage(ChatColor.RED + command.getUsage());
+        sender.sendMessage(Component.text(command.getUsage(), NamedTextColor.RED));
         return true;
     }
 
     private boolean onPotion(Player sender, String label, String[] args) {
-        String usage = ChatColor.RED + "/" + label + " potion <identifier>";
+        TextComponent usage = Component.text("/" + label + " potion <identifier>", NamedTextColor.RED);
         if (args.length == 1) {
             String accessiblePotionIds = StreamSupport.stream(this.potionLister.get(), false)
                     .map(LugolsIodinePotion::getId)
                     .sorted()
                     .collect(Collectors.joining(", "));
 
-            sender.sendMessage(ChatColor.RED + "Provide lugol's iodine potion identifier in the first argument.");
+            sender.sendMessage(Component.text("Provide lugol's iodine potion identifier in the first argument.", NamedTextColor.RED));
             sender.sendMessage(usage);
-            sender.sendMessage(ChatColor.RED + "Example: /" + label + " potion default");
-            sender.sendMessage(ChatColor.RED + "Accessible potions: " + accessiblePotionIds);
+            sender.sendMessage(Component.text("Example: /" + label + " potion default", NamedTextColor.RED));
+            sender.sendMessage(Component.text("Accessible potions: " + accessiblePotionIds, NamedTextColor.RED));
             return true;
         }
 
         String id = args[1];
         LugolsIodinePotion potion = this.potionFinder.apply(id);
         if (potion == null) {
-            sender.sendMessage(ChatColor.RED + "Unknown lugol's iodine potion identifier: " + id);
+            sender.sendMessage(Component.text("Unknown lugol's iodine potion identifier: " + id, NamedTextColor.RED));
             sender.sendMessage(usage);
             return true;
         }
@@ -124,24 +118,24 @@ public class RadiationCommandHandler implements CommandExecutor, TabCompleter {
             itemStack = potion.createItemStack(1);
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Could not create potion item for '" + sender.getName() + "'.", e);
-            sender.sendMessage(ChatColor.RED + "An internal error has occurred while creating potion item. See console.");
+            sender.sendMessage(Component.text("An internal error has occurred while creating potion item. See console.", NamedTextColor.RED));
             return true;
         }
 
         ItemMeta itemMeta = Objects.requireNonNull(itemStack.getItemMeta());
 
         if (sender.getInventory().addItem(itemStack).isEmpty()) {
-            sender.sendMessage(ChatColor.GREEN + "You have received " + itemStack.getAmount() + " " + itemMeta.getDisplayName());
+            sender.sendMessage(Component.text("You have received " + itemStack.getAmount() + " ", NamedTextColor.GREEN).appendSpace().append(Objects.requireNonNull(itemMeta.displayName())));
         } else {
-            sender.sendMessage(ChatColor.RED + "Your inventory is full!");
+            sender.sendMessage(Component.text("Your inventory is full!", NamedTextColor.RED));
         }
         return true;
     }
 
     private boolean onSafe(Player sender, String label, String[] args) {
-        String usage = ChatColor.RED + "/" + label + " safe <radius>";
+        TextComponent usage = Component.text("/" + label + " safe <radius>", NamedTextColor.RED);
         if (args.length == 1) {
-            sender.sendMessage(ChatColor.RED + "Provide safe-from-radiation zone radius in the first argument. Radius will be relative to your current position.");
+            sender.sendMessage(Component.text("Provide safe-from-radiation zone radius in the first argument. Radius will be relative to your current position.", NamedTextColor.RED));
             sender.sendMessage(usage);
             return true;
         }
@@ -150,27 +144,27 @@ public class RadiationCommandHandler implements CommandExecutor, TabCompleter {
         try {
             radius = Integer.parseInt(args[1]);
         } catch (NumberFormatException e) {
-            sender.sendMessage(ChatColor.RED + "Number was expected, but " + args[1] + " was provided.");
-            sender.sendMessage(ChatColor.RED + usage);
+            sender.sendMessage(Component.text("Number was expected, but " + args[1] + " was provided.", NamedTextColor.RED));
+            sender.sendMessage(usage);
             return true;
         }
 
         if (radius <= 0) {
-            sender.sendMessage(ChatColor.RED + "Radius must be positive.");
-            sender.sendMessage(ChatColor.RED + usage);
+            sender.sendMessage(Component.text("Radius must be positive.", NamedTextColor.RED));
+            sender.sendMessage(usage);
             return true;
         }
 
         RegionContainer container = this.worldGuardMatcher.getRegionContainer();
         if (container == null) {
-            sender.sendMessage(ChatColor.RED + "Sorry, region container is not currently accessible.");
+            sender.sendMessage(Component.text("Sorry, region container is not currently accessible.", NamedTextColor.RED));
             return true;
         }
 
         if (this.define(sender, container, REGION_ID, radius)) {
             BlockVector2 origin = BukkitAdapter.asBlockVector(sender.getLocation()).toBlockVector2();
-            sender.sendMessage(ChatColor.GREEN + "A new safe-from-radiation zone has been created in radius " +
-                    radius + " at the origin at " + origin + " in world " + sender.getWorld().getName() + ".");
+            sender.sendMessage(Component.text("A new safe-from-radiation zone has been created in radius " +
+                    radius + " at the origin at " + origin + " in world " + sender.getWorld().getName() + ".", NamedTextColor.GREEN));
         }
         return true;
     }
@@ -184,7 +178,7 @@ public class RadiationCommandHandler implements CommandExecutor, TabCompleter {
         World world = BukkitAdapter.adapt(bukkitWorld);
         RegionManager regionManager = container.get(world);
         if (regionManager == null) {
-            player.sendMessage(ChatColor.RED + "Sorry, region manager for world " + world.getName() + " is not currently accessible.");
+            player.sendMessage(Component.text("Sorry, region manager for world " + world.getName() + " is not currently accessible.", NamedTextColor.RED));
             return false;
         }
 
@@ -245,7 +239,7 @@ public class RadiationCommandHandler implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
         String subCommandInput = args[0].toLowerCase(Locale.ROOT);
         if (args.length == 1) {
             return Stream.of("potion", "safe")

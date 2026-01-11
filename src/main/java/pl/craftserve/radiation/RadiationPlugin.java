@@ -27,6 +27,10 @@ import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.GlobalProtectedRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.boss.BarColor;
@@ -37,24 +41,10 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+import pl.craftserve.radiation.nms.PaperApi;
 import pl.craftserve.radiation.nms.RadiationNmsBridge;
-import pl.craftserve.radiation.nms.V1_14ToV1_15NmsBridge;
-import pl.craftserve.radiation.nms.V1_17_R1NmsBridge;
-import pl.craftserve.radiation.nms.V1_18_R1NmsBridge;
-import pl.craftserve.radiation.nms.V1_18_R2NmsBridge;
-import pl.craftserve.radiation.nms.V1_19_R1NmsBridge;
-import pl.craftserve.radiation.nms.V1_19_R2NmsBridge;
-import pl.craftserve.radiation.nms.V1_20_R3NmsBridge;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -63,10 +53,12 @@ import java.util.logging.Logger;
 public final class RadiationPlugin extends JavaPlugin {
     static final Logger logger = Logger.getLogger(RadiationPlugin.class.getName());
 
-    private static final char COLOR_CODE = '&';
+    public static TextComponent colorizeComponent(String input) {
+        return input == null ? null : LegacyComponentSerializer.legacyAmpersand().deserialize(input);
+    }
 
-    public static String colorize(String input) {
-        return input == null ? null : ChatColor.translateAlternateColorCodes(COLOR_CODE, input);
+    public static String componentToPlainText(Component input) {
+        return PlainTextComponentSerializer.plainText().serialize(input);
     }
 
     private static final int CURRENT_PROTOCOL_VERSION = 4;
@@ -84,36 +76,8 @@ public final class RadiationPlugin extends JavaPlugin {
     private final Map<String, LugolsIodinePotion> potions = new LinkedHashMap<>();
     private final Map<String, Radiation> activeRadiations = new LinkedHashMap<>();
 
-    private RadiationNmsBridge initializeNmsBridge() {
-        String serverVersion = RadiationNmsBridge.getServerVersion(this.getServer());
-        logger.info("Detected server version: " + serverVersion);
-
-        switch (serverVersion) {
-            case "v1_14_R1":
-            case "v1_15_R1":
-            case "v1_16_R1":
-            case "v1_16_R2":
-            case "v1_16_R3":
-                return new V1_14ToV1_15NmsBridge(serverVersion);
-            case "v1_17_R1":
-                return new V1_17_R1NmsBridge(serverVersion);
-            case "v1_18_R1":
-                return new V1_18_R1NmsBridge(serverVersion);
-            case "v1_18_R2":
-                return new V1_18_R2NmsBridge(serverVersion);
-            case "v1_19_R1":
-                return new V1_19_R1NmsBridge(serverVersion);
-            case "v1_19_R2":
-            case "v1_19_R3":
-                return new V1_19_R2NmsBridge(serverVersion);
-            case "v1_20_R1":
-            case "v1_20_R2":
-            case "v1_20_R3":
-                return new V1_20_R3NmsBridge(serverVersion);
-            default:
-                throw new RuntimeException("Unsupported server version: " + serverVersion);
-        }
-    }
+    private CraftserveListener craftserveListener;
+    private MetricsHandler metricsHandler;
 
     @Override
     public void onLoad() {
@@ -130,14 +94,7 @@ public final class RadiationPlugin extends JavaPlugin {
     public void onEnable() {
         this.saveDefaultConfig();
 
-        try {
-            this.radiationNmsBridge = this.initializeNmsBridge();
-        } catch (Exception e) {
-            logger.log(Level.SEVERE,
-                    "Failed to launch " + this.getName() + ". Plausibly your server version is unsupported.", e);
-            this.setEnabled(false);
-            return;
-        }
+        this.radiationNmsBridge = new PaperApi();
 
         //
         // Configuration
@@ -301,8 +258,7 @@ public final class RadiationPlugin extends JavaPlugin {
             section.getStringList("world-names").forEach(worldName -> {
                 if (logged.compareAndSet(false, true)) {
                     logger.warning(
-                            "Enabling in legacy region-name mode! The plugin will try to automatically migrate to the new flag-based system.\n"
-                                    +
+                            "Enabling in legacy region-name mode! The plugin will try to automatically migrate to the new flag-based system.\n" +
                                     "If everything went fine please completely remove your config.yml file.");
                 }
 

@@ -16,16 +16,17 @@
 
 package pl.craftserve.radiation.nms;
 
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Server;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.World;
+import org.bukkit.inventory.ItemStack;
 import pl.craftserve.radiation.LugolsIodinePotion;
 
 import java.util.Objects;
 
 public interface RadiationNmsBridge {
-    void registerLugolsIodinePotion(NamespacedKey potionKey, LugolsIodinePotion.Config.Recipe config);
+    void registerLugolsIodinePotion(NamespacedKey potionKey, LugolsIodinePotion.Config.Recipe config, ItemStack potion);
 
     void unregisterLugolsIodinePotion(NamespacedKey potionKey);
 
