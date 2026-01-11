@@ -76,7 +76,6 @@ public final class RadiationPlugin extends JavaPlugin {
     private final Map<String, LugolsIodinePotion> potions = new LinkedHashMap<>();
     private final Map<String, Radiation> activeRadiations = new LinkedHashMap<>();
 
-    private CraftserveListener craftserveListener;
     private MetricsHandler metricsHandler;
 
     @Override
