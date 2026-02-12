@@ -46,7 +46,7 @@ dependencies {
 }
 
 group = "pl.craftserve"
-version = "1.6.2"
+version = "7.2.0"
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))
